@@ -3,92 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nusuk Keys - Community Exchange</title>
+    <title>Nusuk Keys - Premium Exchange</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Firebase SDK (V8 for easy setup) -->
+    <!-- Fonts: Amiri for Islamic touch, Inter for modern readability -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        .rtl { direction: rtl; text-align: right; }
-        textarea::-webkit-scrollbar { width: 8px; }
-        textarea::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            /* Soft Islamic Green Background with subtle pattern */
+            background-color: #ecfdf5;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2310b981' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-attachment: fixed;
+            color: #064e3b;
+        }
+        h1, .islamic-font { font-family: 'Amiri', serif; }
         
-        /* Hide Google Translate Banner & Logo */
-        .goog-te-banner-frame.skiptranslate { display: none !important; } 
+        /* Premium Glassmorphism */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+        .glass-input {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        /* Fix Google Translate Mess */
+        .goog-te-banner-frame { display: none !important; } 
         body { top: 0px !important; }
-        .goog-te-combo { padding: 6px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; }
-        #google_translate_element .goog-logo-link { display: none !important; }
-        .goog-te-gadget { color: transparent !important; font-size: 0px; }
+        .goog-logo-link { display: none !important; }
+        .goog-te-gadget { color: transparent !important; font-size: 0px !important; margin: 0 !important; padding: 0 !important; }
+        
+        /* Style the Google Select Box to look Premium */
+        #google_translate_element select {
+            appearance: none;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(249, 115, 22, 0.4);
+            border-radius: 9999px;
+            padding: 6px 30px 6px 16px;
+            color: #064e3b;
+            font-size: 13px;
+            font-weight: 600;
+            outline: none;
+            box-shadow: 0 4px 10px rgba(249, 115, 22, 0.1);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="%23f97316"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+            cursor: pointer;
+        }
+
+        .rtl { direction: rtl; text-align: right; }
     </style>
 </head>
-<body class="text-slate-800 antialiased">
+<body class="antialiased relative min-h-screen">
 
-    <!-- Header -->
-    <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50 notranslate">
-        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
-            <div>
-                <h1 class="text-2xl font-bold text-emerald-600">Nusuk Keys</h1>
-                <p class="text-xs text-slate-500">Community exchange</p>
+    <!-- Ambient Glowing Orbs in Background -->
+    <div class="absolute top-0 left-0 w-72 h-72 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 -z-10"></div>
+    <div class="absolute top-40 right-0 w-72 h-72 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 -z-10"></div>
+
+    <!-- Premium Header -->
+    <header class="glass-card sticky top-0 z-50 border-b border-white/50 notranslate">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            
+            <!-- Logo area with Islamic Vibe -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-emerald-400 flex justify-center items-center shadow-lg shadow-emerald-500/30">
+                    <!-- Crescent Moon SVG -->
+                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.06 0 2.09-.16 3.06-.47C10.66 20.35 7.5 16.53 7.5 12c0-4.53 3.16-8.35 7.56-9.53C14.09 2.16 13.06 2 12 2z"/></svg>
+                </div>
+                <div class="text-center md:text-left">
+                    <h1 class="text-2xl font-bold text-emerald-800 islamic-font tracking-wide">Nusuk Keys</h1>
+                    <p class="text-xs font-semibold text-orange-500 uppercase tracking-widest">Community Exchange</p>
+                </div>
             </div>
             
-            <div class="flex flex-wrap items-center gap-2">
-                <!-- Default Language Buttons -->
-                <button onclick="changeLanguage('en')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-xs font-bold">English</button>
-                <button onclick="changeLanguage('bn')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-xs font-bold">বাংলা</button>
-                <button onclick="changeLanguage('ar')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-xs font-bold">العربية</button>
-                <button onclick="changeLanguage('ckb')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-xs font-bold">كردي (Iraq)</button>
+            <!-- Language Bar: Fixed Layout -->
+            <div class="flex flex-wrap justify-center items-center gap-2">
+                <button onclick="changeLanguage('en')" class="px-3 py-1.5 bg-white/60 hover:bg-orange-100 text-emerald-800 border border-white/80 rounded-full text-xs font-bold shadow-sm backdrop-blur-sm transition-all">Eng</button>
+                <button onclick="changeLanguage('bn')" class="px-3 py-1.5 bg-white/60 hover:bg-orange-100 text-emerald-800 border border-white/80 rounded-full text-xs font-bold shadow-sm backdrop-blur-sm transition-all">বাংলা</button>
+                <button onclick="changeLanguage('ar')" class="px-3 py-1.5 bg-white/60 hover:bg-orange-100 text-emerald-800 border border-white/80 rounded-full text-xs font-bold shadow-sm backdrop-blur-sm transition-all islamic-font text-sm">العربية</button>
                 
-                <!-- Google Translate Dropdown -->
-                <div id="google_translate_element" class="ml-2"></div>
+                <!-- Google Translate completely styled -->
+                <div id="google_translate_element" class="ml-1"></div>
             </div>
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-4 py-8">
-        <!-- Dashboard Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div class="glass-card p-4 rounded-xl border border-slate-200 text-center"><p class="text-sm text-slate-500">Total Visitors</p><p id="stat-visitors" class="text-2xl font-bold notranslate">0</p></div>
-            <div class="glass-card p-4 rounded-xl border border-slate-200 text-center"><p class="text-sm text-slate-500">Total Keys</p><p id="stat-keys" class="text-2xl font-bold notranslate">0</p></div>
-            <div class="glass-card p-4 rounded-xl border border-slate-200 text-center"><p class="text-sm text-slate-500">Keys Used</p><p id="stat-used" class="text-2xl font-bold notranslate">0</p></div>
-            <div class="glass-card p-4 rounded-xl border border-slate-200 text-center"><p class="text-sm text-slate-500">Available</p><p id="stat-avail" class="text-2xl font-bold text-emerald-600 notranslate">0</p></div>
+    <main class="max-w-4xl mx-auto px-4 py-8 relative z-10">
+        
+        <!-- Premium Stats Dashboard -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="glass-card p-5 rounded-3xl text-center relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-16 h-16 bg-orange-200 rounded-full blur-xl opacity-50 group-hover:bg-orange-400 transition-all"></div>
+                <p class="text-xs font-bold text-orange-600 uppercase tracking-wider mb-1">Visitors</p>
+                <p id="stat-visitors" class="text-3xl font-bold text-emerald-800 notranslate">0</p>
+            </div>
+            <div class="glass-card p-5 rounded-3xl text-center relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-16 h-16 bg-emerald-200 rounded-full blur-xl opacity-50 group-hover:bg-emerald-400 transition-all"></div>
+                <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Total Keys</p>
+                <p id="stat-keys" class="text-3xl font-bold text-emerald-800 notranslate">0</p>
+            </div>
+            <div class="glass-card p-5 rounded-3xl text-center relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-16 h-16 bg-orange-200 rounded-full blur-xl opacity-50 group-hover:bg-orange-400 transition-all"></div>
+                <p class="text-xs font-bold text-orange-600 uppercase tracking-wider mb-1">Used</p>
+                <p id="stat-used" class="text-3xl font-bold text-emerald-800 notranslate">0</p>
+            </div>
+            <div class="glass-card p-5 rounded-3xl text-center relative overflow-hidden group border-emerald-300">
+                <div class="absolute inset-0 bg-gradient-to-br from-emerald-400/10 to-orange-400/10"></div>
+                <p class="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1 relative z-10">Available</p>
+                <p id="stat-avail" class="text-3xl font-bold text-orange-600 notranslate relative z-10">0</p>
+            </div>
         </div>
 
-        <!-- Tabs -->
-        <div class="flex space-x-6 border-b border-slate-200 mb-6">
-            <button id="tab-btn-keys" onclick="switchTab('keys')" class="pb-3 text-lg font-bold text-emerald-600 border-b-2 border-emerald-600">Keys</button>
-            <button id="tab-btn-share" onclick="switchTab('share')" class="pb-3 text-lg font-bold text-slate-400">Share</button>
+        <!-- Premium Toggle Tabs -->
+        <div class="flex p-1.5 glass-card rounded-full mb-8 w-full max-w-sm mx-auto shadow-inner">
+            <button id="tab-btn-keys" onclick="switchTab('keys')" class="flex-1 py-2.5 rounded-full bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/40 transition-all">Active Keys</button>
+            <button id="tab-btn-share" onclick="switchTab('share')" class="flex-1 py-2.5 rounded-full text-emerald-800 font-bold hover:bg-white/50 transition-all">Share Key</button>
         </div>
 
-        <!-- KEYS SECTION -->
+        <!-- ================= KEYS TAB ================= -->
         <div id="section-keys">
-            <div id="keys-container" class="space-y-3 mb-8">
-                <!-- Keys will load here live from Firebase -->
-                <p class="text-center text-slate-500 py-4">Loading keys securely...</p>
+            <div id="keys-container" class="space-y-4 mb-8">
+                <!-- Loading Animation -->
+                <div class="text-center py-10">
+                    <div class="inline-block w-8 h-8 border-4 border-emerald-500 border-t-orange-500 rounded-full animate-spin mb-3"></div>
+                    <p class="text-emerald-700 font-medium">Bismillah... Loading keys</p>
+                </div>
             </div>
         </div>
 
-        <!-- SHARE SECTION -->
+        <!-- ================= SHARE TAB ================= -->
         <div id="section-share" class="hidden">
-            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <h2 class="text-xl font-bold mb-2">Share your keys</h2>
-                <textarea id="keyInputArea" rows="8" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-4 outline-none focus:border-emerald-500 notranslate" placeholder="NG-N0S2eEMN..."></textarea>
-                <button onclick="submitKeysToFirebase()" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl">Share keys</button>
+            <div class="glass-card p-8 rounded-3xl text-center max-w-2xl mx-auto">
+                <h2 class="text-2xl font-bold text-emerald-800 mb-2 islamic-font">Share Your Keys</h2>
+                <p class="text-sm font-medium text-orange-600 mb-6">Help the community perform their Nusuk easily.</p>
+                
+                <textarea id="keyInputArea" rows="6" class="w-full glass-input rounded-2xl p-4 text-emerald-900 font-mono outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all notranslate resize-none" placeholder="Paste NG-N0S2eEMN here..."></textarea>
+                
+                <button onclick="submitKeysToFirebase()" class="w-full mt-6 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-4 rounded-full shadow-lg shadow-emerald-500/30 hover:shadow-orange-500/30 transition-all duration-300 text-lg">
+                    Share With Community
+                </button>
             </div>
         </div>
+
     </main>
 
-    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 transition-all duration-300 z-50"></div>
+    <!-- Premium Toast Notification -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-xl text-emerald-900 border border-emerald-100 px-6 py-3 rounded-full shadow-[0_8px_30px_rgb(16,185,129,0.2)] transform translate-y-20 opacity-0 transition-all duration-300 z-50 font-bold flex items-center gap-2">
+        <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        <span id="toast-msg">Success</span>
+    </div>
 
-    <!-- Scripts -->
+    <!-- Google Translate Script -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false}, 'google_translate_element');
         }
-        // Custom Language Button Logic
         function changeLanguage(langCode) {
             var selectField = document.querySelector("select.goog-te-combo");
             if(selectField) { selectField.value = langCode; selectField.dispatchEvent(new Event('change')); }
@@ -96,10 +179,8 @@
     </script>
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
+    <!-- Firebase Script (আপনার API Key এখানে বসাতে ভুলবেন না) -->
     <script>
-        // ==========================================
-        // FIREBASE SETUP (আপনার ফায়ারবেস কনফিগ এখানে বসাবেন)
-        // ==========================================
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -109,13 +190,16 @@
             messagingSenderId: "YOUR_SENDER_ID",
             appId: "YOUR_APP_ID"
         };
-        firebase.initializeApp(firebaseConfig);
+        // Initialize Firebase ONLY IF NOT ALREADY INITIALIZED to prevent errors
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const db = firebase.database();
 
-        // 1. Visitor Counter (সহজ ট্র্যাকিং)
+        // 1. Visitor Counter
         db.ref('stats/visitors').set(firebase.database.ServerValue.increment(1));
 
-        // 2. Load Keys Live
+        // 2. Load Keys with Premium Design
         db.ref('keys').limitToLast(50).on('value', (snapshot) => {
             const container = document.getElementById('keys-container');
             container.innerHTML = '';
@@ -123,20 +207,29 @@
             snapshot.forEach((child) => {
                 total++;
                 const data = child.val();
+                
+                // Key Card HTML
                 container.innerHTML = `
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div>
-                        <p class="font-mono text-xl font-bold text-slate-800 notranslate" id="${child.key}">${data.text}</p>
+                <div class="glass-card p-4 rounded-2xl flex justify-between items-center group hover:bg-white/60 transition-all border border-white/60 hover:border-orange-300">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center shadow-inner">
+                            <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="font-mono text-xl font-bold text-emerald-900 notranslate tracking-wide" id="${child.key}">${data.text}</p>
+                            <p class="text-xs text-emerald-600/70 font-semibold mt-0.5">Ready to use</p>
+                        </div>
                     </div>
-                    <button onclick="copyKey('${child.key}')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200">Copy</button>
-                </div>` + container.innerHTML; // Prepend for newest first
+                    <button onclick="copyKey('${child.key}')" class="px-5 py-2.5 bg-white text-emerald-700 font-bold rounded-full hover:bg-orange-500 hover:text-white transition-all shadow-sm border border-emerald-100 hover:border-orange-500 active:scale-95">Copy</button>
+                </div>` + container.innerHTML;
             });
+            
             document.getElementById('stat-keys').innerText = total;
             document.getElementById('stat-avail').innerText = total;
-            if(total === 0) container.innerHTML = '<p class="text-center text-slate-500">No keys available right now. Be the first to share!</p>';
+            if(total === 0) container.innerHTML = '<div class="glass-card p-10 text-center rounded-3xl"><p class="text-orange-600 font-bold">No keys yet. Be the first to share!</p></div>';
         });
 
-        // 3. Update Visitors Stat
+        // 3. Stats update
         db.ref('stats/visitors').on('value', snap => {
             document.getElementById('stat-visitors').innerText = snap.val() || 0;
         });
@@ -145,7 +238,11 @@
         function submitKeysToFirebase() {
             const area = document.getElementById('keyInputArea');
             const lines = area.value.split('\n').map(l => l.trim()).filter(l => l.startsWith('NG-') || l.includes('nusuk'));
-            if(lines.length === 0) return showToast('Please enter valid keys (Starting with NG-)', 'bg-red-500');
+            
+            if(lines.length === 0) {
+                showToast('Enter valid keys (Start with NG-)');
+                return;
+            }
             
             lines.forEach(keyText => {
                 db.ref('keys').push({
@@ -155,25 +252,41 @@
                 });
             });
             area.value = '';
-            showToast(`Successfully shared ${lines.length} key(s)! 🎉`, 'bg-emerald-600');
+            showToast(`${lines.length} Key(s) Shared! Jazakallah!`);
             setTimeout(() => switchTab('keys'), 1000);
         }
 
         // Utils
         function copyKey(id) {
             navigator.clipboard.writeText(document.getElementById(id).innerText);
-            showToast('Key copied!', 'bg-emerald-600');
+            showToast('Key Copied to Clipboard!');
         }
+        
         function switchTab(tab) {
-            document.getElementById('section-keys').classList.toggle('hidden', tab !== 'keys');
-            document.getElementById('section-share').classList.toggle('hidden', tab !== 'share');
+            const keysSec = document.getElementById('section-keys');
+            const shareSec = document.getElementById('section-share');
+            const btnKeys = document.getElementById('tab-btn-keys');
+            const btnShare = document.getElementById('tab-btn-share');
+
+            if(tab === 'keys') {
+                keysSec.classList.remove('hidden');
+                shareSec.classList.add('hidden');
+                btnKeys.className = "flex-1 py-2.5 rounded-full bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/40 transition-all";
+                btnShare.className = "flex-1 py-2.5 rounded-full text-emerald-800 font-bold hover:bg-white/50 transition-all";
+            } else {
+                keysSec.classList.add('hidden');
+                shareSec.classList.remove('hidden');
+                btnShare.className = "flex-1 py-2.5 rounded-full bg-orange-500 text-white font-bold shadow-md shadow-orange-500/40 transition-all";
+                btnKeys.className = "flex-1 py-2.5 rounded-full text-emerald-800 font-bold hover:bg-white/50 transition-all";
+            }
         }
-        function showToast(msg, bg) {
+        
+        function showToast(msg) {
             const t = document.getElementById('toast');
-            t.innerText = msg; t.className = `fixed bottom-5 right-5 text-white px-6 py-3 rounded-lg shadow-lg transition-all duration-300 z-50 ${bg}`;
-            t.style.opacity = 1; setTimeout(() => t.style.opacity = 0, 3000);
+            document.getElementById('toast-msg').innerText = msg;
+            t.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 2500);
         }
     </script>
 </body>
 </html>
-
