@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nusuk Keys - Community Exchange</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDK (V8 for easy setup) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .rtl { direction: rtl; text-align: right; }
+        textarea::-webkit-scrollbar { width: 8px; }
+        textarea::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        
+        /* Hide Google Translate Banner & Logo */
+        .goog-te-banner-frame.skiptranslate { display: none !important; } 
+        body { top: 0px !important; }
+        .goog-te-combo { padding: 6px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; }
+        #google_translate_element .goog-logo-link { display: none !important; }
+        .goog-te-gadget { color: transparent !important; font-size: 0px; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50 notranslate">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-emerald-600">Nusuk Keys</h1>
+                <p class="text-xs text-slate-500">Community exchange</p>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- Default Language Buttons -->
+                <button onclick="changeLanguage('en')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-xs font-bold">English</button>
+                <button onclick="changeLanguage('bn')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-xs font-bold">বাংলা</button>
+                <button onclick="changeLanguage('ar')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-xs font-bold">العربية</button>
+                <button onclick="changeLanguage('ckb')" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-xs font-bold">كردي (Iraq)</button>
+                
+                <!-- Google Translate Dropdown -->
+                <div id="google_translate_element" class="ml-2"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Dashboard Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="glass-card p-4 rounded-xl border border-slate-200 text-center"><p class="text-sm text-slate-500">Total Visitors</p><p id="stat-visitors" class="text-2xl font-bold notranslate">0</p></div>
+            <div class="glass-card p-4 rounded-xl border border-slate-200 text-center"><p class="text-sm text-slate-500">Total Keys</p><p id="stat-keys" class="text-2xl font-bold notranslate">0</p></div>
+            <div class="glass-card p-4 rounded-xl border border-slate-200 text-center"><p class="text-sm text-slate-500">Keys Used</p><p id="stat-used" class="text-2xl font-bold notranslate">0</p></div>
+            <div class="glass-card p-4 rounded-xl border border-slate-200 text-center"><p class="text-sm text-slate-500">Available</p><p id="stat-avail" class="text-2xl font-bold text-emerald-600 notranslate">0</p></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex space-x-6 border-b border-slate-200 mb-6">
+            <button id="tab-btn-keys" onclick="switchTab('keys')" class="pb-3 text-lg font-bold text-emerald-600 border-b-2 border-emerald-600">Keys</button>
+            <button id="tab-btn-share" onclick="switchTab('share')" class="pb-3 text-lg font-bold text-slate-400">Share</button>
+        </div>
+
+        <!-- KEYS SECTION -->
+        <div id="section-keys">
+            <div id="keys-container" class="space-y-3 mb-8">
+                <!-- Keys will load here live from Firebase -->
+                <p class="text-center text-slate-500 py-4">Loading keys securely...</p>
+            </div>
+        </div>
+
+        <!-- SHARE SECTION -->
+        <div id="section-share" class="hidden">
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <h2 class="text-xl font-bold mb-2">Share your keys</h2>
+                <textarea id="keyInputArea" rows="8" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-4 outline-none focus:border-emerald-500 notranslate" placeholder="NG-N0S2eEMN..."></textarea>
+                <button onclick="submitKeysToFirebase()" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl">Share keys</button>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 transition-all duration-300 z-50"></div>
+
+    <!-- Scripts -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false}, 'google_translate_element');
+        }
+        // Custom Language Button Logic
+        function changeLanguage(langCode) {
+            var selectField = document.querySelector("select.goog-te-combo");
+            if(selectField) { selectField.value = langCode; selectField.dispatchEvent(new Event('change')); }
+        }
+    </script>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script>
+        // ==========================================
+        // FIREBASE SETUP (আপনার ফায়ারবেস কনফিগ এখানে বসাবেন)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // 1. Visitor Counter (সহজ ট্র্যাকিং)
+        db.ref('stats/visitors').set(firebase.database.ServerValue.increment(1));
+
+        // 2. Load Keys Live
+        db.ref('keys').limitToLast(50).on('value', (snapshot) => {
+            const container = document.getElementById('keys-container');
+            container.innerHTML = '';
+            let total = 0;
+            snapshot.forEach((child) => {
+                total++;
+                const data = child.val();
+                container.innerHTML = `
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                        <p class="font-mono text-xl font-bold text-slate-800 notranslate" id="${child.key}">${data.text}</p>
+                    </div>
+                    <button onclick="copyKey('${child.key}')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200">Copy</button>
+                </div>` + container.innerHTML; // Prepend for newest first
+            });
+            document.getElementById('stat-keys').innerText = total;
+            document.getElementById('stat-avail').innerText = total;
+            if(total === 0) container.innerHTML = '<p class="text-center text-slate-500">No keys available right now. Be the first to share!</p>';
+        });
+
+        // 3. Update Visitors Stat
+        db.ref('stats/visitors').on('value', snap => {
+            document.getElementById('stat-visitors').innerText = snap.val() || 0;
+        });
+
+        // 4. Submit Keys
+        function submitKeysToFirebase() {
+            const area = document.getElementById('keyInputArea');
+            const lines = area.value.split('\n').map(l => l.trim()).filter(l => l.startsWith('NG-') || l.includes('nusuk'));
+            if(lines.length === 0) return showToast('Please enter valid keys (Starting with NG-)', 'bg-red-500');
+            
+            lines.forEach(keyText => {
+                db.ref('keys').push({
+                    text: keyText,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    status: 'active'
+                });
+            });
+            area.value = '';
+            showToast(`Successfully shared ${lines.length} key(s)! 🎉`, 'bg-emerald-600');
+            setTimeout(() => switchTab('keys'), 1000);
+        }
+
+        // Utils
+        function copyKey(id) {
+            navigator.clipboard.writeText(document.getElementById(id).innerText);
+            showToast('Key copied!', 'bg-emerald-600');
+        }
+        function switchTab(tab) {
+            document.getElementById('section-keys').classList.toggle('hidden', tab !== 'keys');
+            document.getElementById('section-share').classList.toggle('hidden', tab !== 'share');
+        }
+        function showToast(msg, bg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.className = `fixed bottom-5 right-5 text-white px-6 py-3 rounded-lg shadow-lg transition-all duration-300 z-50 ${bg}`;
+            t.style.opacity = 1; setTimeout(() => t.style.opacity = 0, 3000);
+        }
+    </script>
+</body>
+</html>
