@@ -1,13 +1,18 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en" dir="ltr" id="html-root">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nusuk Keys - Premium Exchange</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Firebase SDK (Compat Version for Easy Setup) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
@@ -17,36 +22,73 @@
             background-color: #ecfdf5;
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2310b981' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
             background-attachment: fixed;
-            color: #064e3b;
+            transition: all 0.3s ease;
         }
+        
+        /* Dark Mode */
+        html.dark body {
+            background-color: #0f172a;
+            background-image: none;
+            color: #cbd5e1;
+        }
+        html.dark .glass-card {
+            background: rgba(15, 23, 42, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        html.dark .glass-input {
+            background: rgba(30, 41, 59, 0.9);
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+        html.dark .text-emerald-800 { color: #34d399; }
+        html.dark .text-emerald-900 { color: #6ee7b7; }
+        html.dark .text-emerald-700 { color: #10b981; }
+
         h1, .islamic-font { font-family: 'Amiri', serif; }
         
         .glass-card {
-            background: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.1);
         }
         .glass-input {
-            background: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        /* 100% HIDE GOOGLE TRANSLATE UGLY WIDGET */
+        /* HIDE TRANSLATE WIDGET */
         #google_translate_element { display: none !important; }
         .goog-te-banner-frame { display: none !important; } 
         body { top: 0px !important; }
         .skiptranslate { display: none !important; }
+
+        /* Animations */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        .floating-icon { animation: float 3s ease-in-out infinite; }
+        
+        /* Auto Vanish Animation */
+        .vanish-out {
+            opacity: 0;
+            transform: scale(0.9) translateY(-10px);
+            transition: all 0.5s ease-out;
+            pointer-events: none;
+        }
     </style>
 </head>
-<body class="antialiased relative min-h-screen">
+<body class="antialiased relative min-h-screen flex flex-col text-[#064e3b]">
 
-    <div class="absolute top-0 left-0 w-72 h-72 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 -z-10"></div>
-    <div class="absolute top-40 right-0 w-72 h-72 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 -z-10"></div>
+    <!-- Gradients -->
+    <div class="absolute top-0 left-0 w-80 h-80 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 -z-10 dark:opacity-10"></div>
+    <div class="absolute top-60 right-0 w-80 h-80 bg-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 -z-10 dark:opacity-10"></div>
 
-    <!-- Hidden Google Translate Element -->
     <div id="google_translate_element"></div>
 
     <!-- Header -->
@@ -54,99 +96,139 @@
         <div class="max-w-4xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
             
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-600 to-emerald-400 flex justify-center items-center shadow-lg shadow-emerald-500/30">
-                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.06 0 2.09-.16 3.06-.47C10.66 20.35 7.5 16.53 7.5 12c0-4.53 3.16-8.35 7.56-9.53C14.09 2.16 13.06 2 12 2z"/></svg>
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-600 to-emerald-400 flex justify-center items-center shadow-lg shadow-emerald-500/40 floating-icon">
+                    <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10c1.06 0 2.09-.16 3.06-.47C10.66 20.35 7.5 16.53 7.5 12c0-4.53 3.16-8.35 7.56-9.53C14.09 2.16 13.06 2 12 2z"/></svg>
                 </div>
                 <div class="text-center md:text-left">
-                    <h1 class="text-2xl font-bold text-emerald-800 islamic-font tracking-wide">Nusuk Keys</h1>
-                    <p class="text-xs font-semibold text-orange-500 uppercase tracking-widest">Community Exchange</p>
+                    <h1 class="text-3xl font-bold text-emerald-800 islamic-font tracking-wide">Nusuk Keys</h1>
+                    <p class="text-[10px] font-bold text-orange-500 uppercase tracking-[0.2em]">Community Exchange</p>
                 </div>
             </div>
             
-            <!-- Custom Language Buttons -->
+            <!-- Language Buttons & Dark Mode -->
             <div class="flex justify-center items-center gap-2">
-                <button onclick="changeCustomLanguage('en')" class="px-4 py-2 bg-white/80 hover:bg-orange-100 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold shadow-sm transition-all">Eng</button>
-                <button onclick="changeCustomLanguage('bn')" class="px-4 py-2 bg-white/80 hover:bg-orange-100 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold shadow-sm transition-all">বাংলা</button>
-                <button onclick="changeCustomLanguage('ar')" class="px-4 py-2 bg-white/80 hover:bg-orange-100 text-emerald-800 border border-emerald-200 rounded-full text-xs font-bold shadow-sm transition-all islamic-font text-sm">العربية</button>
+                <button onclick="changeCustomLanguage('en')" class="px-4 py-1.5 bg-white dark:bg-slate-700 hover:bg-orange-50 text-emerald-800 border-2 border-emerald-100 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm transition-all hover:scale-105 active:scale-95">Eng</button>
+                <button onclick="changeCustomLanguage('bn')" class="px-4 py-1.5 bg-white dark:bg-slate-700 hover:bg-orange-50 text-emerald-800 border-2 border-emerald-100 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm transition-all hover:scale-105 active:scale-95">বাংলা</button>
+                <button onclick="changeCustomLanguage('ar')" class="px-4 py-1.5 bg-white dark:bg-slate-700 hover:bg-orange-50 text-emerald-800 border-2 border-emerald-100 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm transition-all hover:scale-105 active:scale-95 islamic-font text-sm">العربية</button>
+                <button onclick="toggleDarkMode()" id="themeToggle" class="ml-2 w-9 h-9 rounded-full bg-white dark:bg-slate-700 border-2 border-emerald-100 dark:border-slate-600 flex items-center justify-center text-lg shadow-sm hover:scale-105 transition-all">🌙</button>
             </div>
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-4 py-8 relative z-10">
+    <main class="max-w-4xl mx-auto px-4 py-8 relative z-10 flex-grow w-full">
         
+        <!-- Stats -->
         <div class="grid grid-cols-2 gap-4 mb-8 max-w-2xl mx-auto">
-            <div class="glass-card p-5 rounded-3xl text-center">
-                <p class="text-xs font-bold text-orange-600 uppercase mb-1">Total Keys</p>
-                <p id="stat-keys" class="text-3xl font-bold text-emerald-800 notranslate">0</p>
+            <div class="glass-card p-5 rounded-3xl text-center hover:shadow-lg transition-shadow">
+                <p class="text-xs font-black text-orange-500 uppercase mb-1 tracking-wider">Total Keys</p>
+                <p id="stat-keys" class="text-4xl font-bold text-emerald-800 notranslate">0</p>
             </div>
-            <div class="glass-card p-5 rounded-3xl text-center border-emerald-300">
-                <p class="text-xs font-bold text-emerald-700 uppercase mb-1">Available</p>
-                <p id="stat-avail" class="text-3xl font-bold text-orange-600 notranslate">0</p>
+            <div class="glass-card p-5 rounded-3xl text-center border-emerald-200 dark:border-slate-600 hover:shadow-lg transition-shadow">
+                <p class="text-xs font-black text-emerald-600 uppercase mb-1 tracking-wider">Available</p>
+                <p id="stat-avail" class="text-4xl font-bold text-orange-500 notranslate">0</p>
             </div>
         </div>
 
-        <div class="flex p-1.5 glass-card rounded-full mb-8 w-full max-w-sm mx-auto shadow-inner notranslate">
-            <button id="tab-btn-keys" onclick="switchTab('keys')" class="flex-1 py-3 rounded-full bg-emerald-600 text-white font-bold shadow-md transition-all">Active Keys</button>
-            <button id="tab-btn-share" onclick="switchTab('share')" class="flex-1 py-3 rounded-full text-emerald-800 font-bold hover:bg-white/50 transition-all">Share Key</button>
+        <!-- Tab Buttons -->
+        <div class="flex p-1.5 glass-card rounded-full mb-8 w-full max-w-sm mx-auto shadow-inner notranslate border border-white dark:border-slate-600">
+            <button id="tab-btn-keys" onclick="switchTab('keys')" class="flex-1 py-3.5 rounded-full bg-emerald-600 text-white font-bold shadow-md transition-all">Active Keys</button>
+            <button id="tab-btn-share" onclick="switchTab('share')" class="flex-1 py-3.5 rounded-full text-emerald-800 dark:text-emerald-400 font-bold hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all">Share Key</button>
         </div>
 
         <!-- ================= KEYS TAB ================= -->
         <div id="section-keys">
-            <div id="keys-container" class="space-y-4 mb-8">
-                <!-- Loading Animation -->
-                <div class="text-center py-10">
-                    <div class="inline-block w-8 h-8 border-4 border-emerald-500 border-t-orange-500 rounded-full animate-spin mb-3"></div>
-                    <p class="text-emerald-700 font-medium">Bismillah... Fetching Keys</p>
+            <div id="keys-container" class="space-y-4 mb-8 max-w-2xl mx-auto">
+                <div class="text-center py-12 glass-card rounded-3xl">
+                    <div class="inline-block w-10 h-10 border-4 border-emerald-500 border-t-orange-500 rounded-full animate-spin mb-4"></div>
+                    <p class="text-emerald-700 font-bold">Bismillah... Fetching Keys</p>
                 </div>
             </div>
         </div>
 
         <!-- ================= SHARE TAB ================= -->
         <div id="section-share" class="hidden">
-            <div class="glass-card p-8 rounded-3xl text-center max-w-2xl mx-auto">
+            <div class="glass-card p-8 rounded-3xl text-center max-w-2xl mx-auto border-t border-white dark:border-slate-600 shadow-xl">
+                <div class="w-16 h-16 mx-auto bg-orange-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4 floating-icon">
+                    <span class="text-3xl">🤲</span>
+                </div>
                 <h2 class="text-2xl font-bold text-emerald-800 mb-2 islamic-font">Share Your Keys</h2>
-                <p class="text-sm font-medium text-orange-600 mb-6">Help the community perform their Nusuk easily.</p>
+                <p class="text-sm font-medium text-emerald-600 mb-6">Help a brother or sister perform their Nusuk easily.</p>
                 
-                <textarea id="keyInputArea" rows="6" class="w-full glass-input rounded-2xl p-4 text-emerald-900 font-mono outline-none focus:border-orange-500 focus:ring-2 notranslate resize-none" placeholder="Paste NG-N0S2eEMN here..."></textarea>
+                <textarea id="keyInputArea" rows="5" class="w-full glass-input rounded-2xl p-4 text-emerald-900 font-mono outline-none focus:border-orange-500 focus:ring-2 notranslate resize-none transition-all" placeholder="Paste NG-N0S2eEMN here..."></textarea>
                 
-                <button onclick="submitKeysToFirebase()" class="w-full mt-6 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-4 rounded-full shadow-lg transition-all text-lg notranslate">
-                    Submit Keys
+                <button onclick="submitKeysToFirebase()" class="w-full mt-6 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-orange-500 hover:to-orange-400 text-white font-bold py-4 rounded-full shadow-lg transition-all transform hover:-translate-y-1 active:translate-y-0 text-lg notranslate">
+                    Submit to Community
                 </button>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="mt-12 glass-card p-6 md:p-8 rounded-3xl max-w-2xl mx-auto border border-white/60 dark:border-slate-600">
+            <h3 class="text-center text-lg font-bold text-emerald-800 mb-6">✨ Why use Nusuk Keys?</h3>
+            <div class="grid grid-cols-3 gap-2 md:gap-4 text-center">
+                <div class="p-2">
+                    <div class="w-12 h-12 mx-auto bg-emerald-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-2"><span class="text-xl">⚡</span></div>
+                    <p class="text-xs font-bold text-emerald-900">Instant Access</p>
+                </div>
+                <div class="p-2">
+                    <div class="w-12 h-12 mx-auto bg-orange-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-2"><span class="text-xl">🛡️</span></div>
+                    <p class="text-xs font-bold text-emerald-900">Safe & Secure</p>
+                </div>
+                <div class="p-2">
+                    <div class="w-12 h-12 mx-auto bg-emerald-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-2"><span class="text-xl">🤝</span></div>
+                    <p class="text-xs font-bold text-emerald-900">Community First</p>
+                </div>
             </div>
         </div>
 
     </main>
 
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50 font-bold flex items-center gap-2 notranslate">
+    <!-- Footer -->
+    <footer class="mt-auto py-8 text-center relative z-10">
+        <div class="max-w-2xl mx-auto px-4">
+            <div class="flex justify-center mb-4">
+                <button onclick="shareWebsite()" class="flex items-center gap-2 px-5 py-2 bg-white dark:bg-slate-700 border border-emerald-200 dark:border-slate-600 rounded-full text-xs font-bold text-emerald-800 shadow-sm hover:bg-emerald-50 transition-all">
+                    <span>🔗 Share Website</span>
+                </button>
+            </div>
+            <div class="h-px w-full bg-gradient-to-r from-transparent via-emerald-200 dark:via-slate-600 to-transparent mb-6"></div>
+            <p class="text-sm font-bold text-emerald-800">© 2026 Nusuk Keys.</p>
+            <p class="text-xs text-emerald-600 font-medium mt-1">Made with ❤️ for the Ummah</p>
+        </div>
+    </footer>
+
+    <!-- Floating TG -->
+    <a href="https://t.me/Ashik012098" target="_blank" class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-tr from-[#0088cc] to-[#33aadd] rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all z-50 floating-icon border-2 border-white/20">
+        <svg class="w-7 h-7 ml-[-2px]" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a5.66 5.66 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.892-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+    </a>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-emerald-900 dark:bg-slate-800 text-white px-8 py-3.5 rounded-full shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 z-50 font-bold flex items-center gap-3 border border-emerald-700 notranslate">
         <span id="toast-msg">Success</span>
     </div>
 
-    <!-- Google Translate Script -->
+    <!-- Scripts -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({
                 pageLanguage: 'en', 
-                includedLanguages: 'en,bn,ar,ku',
-                layout: google.translate.TranslateElement.InlineLayout.SIMPLE, 
+                includedLanguages: 'en,bn,ar',
                 autoDisplay: false
             }, 'google_translate_element');
         }
         
         function changeCustomLanguage(langCode) {
-            let selectField = document.querySelector(".goog-te-combo");
-            if(selectField) { 
-                selectField.value = langCode; 
-                selectField.dispatchEvent(new Event('change')); 
-            } else {
-                showToast('Translator is loading, please wait...');
-            }
+            let cookieValue = `/en/${langCode}`;
+            if(langCode === 'en') { cookieValue = '/en/en'; }
+            document.cookie = `googtrans=${cookieValue}; path=/`;
+            document.cookie = `googtrans=${cookieValue}; domain=.${location.hostname}; path=/`;
+            window.location.reload();
         }
     </script>
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
-    <!-- FIREBASE SCRIPT (REAL DATA) -->
+    <!-- FIREBASE -->
     <script>
-        // Your Exact Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCLnmqPCaq4fIUNZp-9IkkE1xBOIBhkyKo",
             authDomain: "nusukkeys.firebaseapp.com",
@@ -157,79 +239,192 @@
             appId: "1:720218381739:web:e6c6c63e1849313aefc6ee",
             measurementId: "G-00WTJ7PRPV"
         };
-        
-        // Initialize Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.database();
 
-        // Load Keys from Database
+        // Dark Mode Logic
+        const htmlRoot = document.getElementById('html-root');
+        const themeToggleBtn = document.getElementById('themeToggle');
+        if (localStorage.getItem('theme') === 'dark') {
+            htmlRoot.classList.add('dark');
+            themeToggleBtn.innerText = '☀️';
+        }
+        function toggleDarkMode() {
+            htmlRoot.classList.toggle('dark');
+            if(htmlRoot.classList.contains('dark')) {
+                localStorage.setItem('theme', 'dark');
+                themeToggleBtn.innerText = '☀️';
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeToggleBtn.innerText = '🌙';
+            }
+        }
+
+        function timeAgo(ms) {
+            if (!ms) return "Just now";
+            const seconds = Math.floor((new Date() - ms) / 1000);
+            if (seconds < 60) return "Just now";
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            return `${Math.floor(hours / 24)}d ago`;
+        }
+
+        const ADMIN_KEY = "NG-AsI6QSDd";
+
+        function createKeyHTML(id, text, timestamp, upvotes = 0, downvotes = 0, isAdmin = false) {
+            let pinBadge = isAdmin ? `<span class="bg-gradient-to-r from-orange-500 to-orange-400 text-white text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider font-bold mb-1.5 inline-flex items-center gap-1 shadow-sm">📌 Pinned by Admin</span><br>` : '';
+            return `
+            <div id="key-card-${id}" class="glass-card p-4 rounded-2xl flex flex-col group mb-4 border border-white dark:border-slate-600 hover:border-emerald-300 transition-all hover:shadow-lg">
+                <div class="flex justify-between items-center w-full">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-orange-100 to-orange-50 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center shadow-inner border border-orange-200/50 dark:border-slate-500">
+                            <span class="font-bold text-orange-500 text-xl md:text-2xl">🔑</span>
+                        </div>
+                        <div>
+                            ${pinBadge}
+                            <p class="font-mono text-lg md:text-xl font-bold text-emerald-900 tracking-wide notranslate">${text}</p>
+                            <p class="text-[10px] md:text-xs text-emerald-600 font-bold mt-1 flex items-center gap-1">🕒 ${timeAgo(timestamp)}</p>
+                        </div>
+                    </div>
+                    <button onclick="copyAndVanish('${id}', '${text}')" class="px-4 py-2 md:px-6 md:py-3 bg-emerald-600 text-white font-bold rounded-full hover:bg-orange-500 transition-all active:scale-95 shadow-md notranslate text-sm md:text-base">Copy</button>
+                </div>
+                <div class="mt-3 flex items-center gap-2 border-t border-emerald-100 dark:border-slate-600 pt-3">
+                    <button onclick="voteKey('${id}', 'upvotes')" class="flex items-center gap-1 bg-white dark:bg-slate-700 px-3 py-1 rounded-full text-xs font-bold text-emerald-700 hover:bg-emerald-50 border border-emerald-100 dark:border-slate-500 transition-all active:scale-95">👍 <span>${upvotes}</span></button>
+                    <button onclick="voteKey('${id}', 'downvotes')" class="flex items-center gap-1 bg-white dark:bg-slate-700 px-3 py-1 rounded-full text-xs font-bold text-red-500 hover:bg-red-50 border border-red-100 dark:border-slate-500 transition-all active:scale-95">👎 <span>${downvotes}</span></button>
+                </div>
+            </div>`;
+        }
+
+        // Fetch and Render Keys
         db.ref('keys').limitToLast(50).on('value', (snapshot) => {
             const container = document.getElementById('keys-container');
             container.innerHTML = '';
+            
+            let copiedKeys = JSON.parse(localStorage.getItem('copiedKeys') || '[]');
             let total = 0;
+            let keysArray = [];
             
             snapshot.forEach((child) => {
+                keysArray.push({ id: child.key, data: child.val() });
+            });
+            keysArray.reverse(); // Show newest first
+
+            // 1. Render Admin Key at the top (if not copied yet)
+            if (!copiedKeys.includes('admin-key-fixed')) {
                 total++;
-                const data = child.val();
-                
-                container.innerHTML = `
-                <div class="glass-card p-4 rounded-2xl flex justify-between items-center group mb-3">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-orange-100 to-orange-50 flex items-center justify-center shadow-inner">
-                            <span class="font-bold text-orange-500 text-xl">🔑</span>
-                        </div>
-                        <div>
-                            <p class="font-mono text-xl font-bold text-emerald-900 notranslate" id="${child.key}">${data.text}</p>
-                            <p class="text-xs text-emerald-600/70 font-semibold mt-0.5">Ready to use</p>
-                        </div>
-                    </div>
-                    <button onclick="copyKey('${child.key}')" class="px-5 py-2.5 bg-emerald-600 text-white font-bold rounded-full hover:bg-orange-500 transition-all notranslate shadow-sm">Copy</button>
-                </div>` + container.innerHTML;
+                container.innerHTML += createKeyHTML('admin-key-fixed', ADMIN_KEY, Date.now(), 99, 0, true);
+            }
+
+            // 2. Render other keys
+            keysArray.forEach(item => {
+                // Ignore if it's already copied OR if it's the admin key (handled above)
+                if (!copiedKeys.includes(item.id) && item.data.text !== ADMIN_KEY) {
+                    total++;
+                    container.innerHTML += createKeyHTML(item.id, item.data.text, item.data.timestamp, item.data.upvotes || 0, item.data.downvotes || 0, false);
+                }
             });
             
             document.getElementById('stat-keys').innerText = total;
             document.getElementById('stat-avail').innerText = total;
             
             if(total === 0) {
-                container.innerHTML = '<div class="glass-card p-10 text-center rounded-3xl"><p class="text-orange-600 font-bold">No keys yet. Be the first to share!</p></div>';
+                container.innerHTML = `
+                <div class="glass-card p-12 text-center rounded-3xl border border-dashed border-emerald-300">
+                    <span class="text-4xl block mb-3 opacity-50">📭</span>
+                    <p class="text-emerald-700 font-bold text-lg">All keys used up!</p>
+                    <p class="text-emerald-500 text-sm mt-1">Wait for someone to share more.</p>
+                </div>`;
             }
         });
 
-        // Submit Keys to Database
+        // Copy Bug Fix & Vanish System
+        function copyAndVanish(id, text) {
+            // Fallback Copy Function (Works without HTTPS/SSL)
+            const fallbackCopy = (text) => {
+                let textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    triggerVanish(id);
+                } catch (err) {
+                    showToast('❌ Copy failed! Your browser blocked it.');
+                }
+                document.body.removeChild(textArea);
+            };
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => triggerVanish(id)).catch(() => fallbackCopy(text));
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        // Auto Vanish & Save to LocalStorage
+        function triggerVanish(id) {
+            showToast('📋 Key Copied & Vanished!');
+            
+            // Save to LocalStorage so it never shows again
+            let copiedKeys = JSON.parse(localStorage.getItem('copiedKeys') || '[]');
+            if (!copiedKeys.includes(id)) {
+                copiedKeys.push(id);
+                localStorage.setItem('copiedKeys', JSON.stringify(copiedKeys));
+            }
+
+            // Animate out
+            let card = document.getElementById('key-card-' + id);
+            if (card) {
+                card.classList.add('vanish-out');
+                setTimeout(() => {
+                    card.remove();
+                    // Update Live Stats
+                    let statKeys = document.getElementById('stat-keys');
+                    let statAvail = document.getElementById('stat-avail');
+                    statKeys.innerText = Math.max(0, parseInt(statKeys.innerText) - 1);
+                    statAvail.innerText = Math.max(0, parseInt(statAvail.innerText) - 1);
+                }, 500);
+            }
+        }
+
+        // Vote, Share & Switch Tab Logic
+        function voteKey(keyId, type) {
+            if(keyId === 'admin-key-fixed') { showToast('Thanks for voting!'); return; }
+            db.ref(`keys/${keyId}/${type}`).transaction((current) => (current || 0) + 1);
+            showToast('Thanks for voting!');
+        }
+
+        function shareWebsite() {
+            if (navigator.share) {
+                navigator.share({ title: 'Nusuk Keys Exchange', url: 'https://nusuk.bond' });
+            } else {
+                navigator.clipboard.writeText('https://nusuk.bond');
+                showToast('🔗 Website link copied!');
+            }
+        }
+
         function submitKeysToFirebase() {
             const area = document.getElementById('keyInputArea');
             const lines = area.value.split('\n').map(l => l.trim()).filter(l => l.startsWith('NG-') || l.includes('nusuk'));
-            
-            if(lines.length === 0) {
-                showToast('Please enter valid keys starting with NG-');
-                return;
-            }
+            if(lines.length === 0) { showToast('❌ Enter valid keys starting with NG-'); return; }
             
             lines.forEach(keyText => {
                 db.ref('keys').push({
                     text: keyText,
                     timestamp: firebase.database.ServerValue.TIMESTAMP,
-                    status: 'active'
+                    upvotes: 0, downvotes: 0
                 });
             });
-            
             area.value = '';
-            showToast(`${lines.length} Key(s) Submitted Successfully!`);
-            
-            // Switch back to keys tab automatically
-            setTimeout(() => {
-                switchTab('keys');
-            }, 1000);
+            showToast(`✅ ${lines.length} Key(s) Shared!`);
+            setTimeout(() => { switchTab('keys'); }, 1200);
         }
 
-        // Utility Functions
-        function copyKey(id) {
-            navigator.clipboard.writeText(document.getElementById(id).innerText);
-            showToast('Key Copied to Clipboard!');
-        }
-        
         function switchTab(tab) {
             const keysSec = document.getElementById('section-keys');
             const shareSec = document.getElementById('section-share');
@@ -237,25 +432,22 @@
             const btnShare = document.getElementById('tab-btn-share');
 
             if(tab === 'keys') {
-                keysSec.classList.remove('hidden');
-                shareSec.classList.add('hidden');
-                btnKeys.className = "flex-1 py-3 rounded-full bg-emerald-600 text-white font-bold shadow-md transition-all";
-                btnShare.className = "flex-1 py-3 rounded-full text-emerald-800 font-bold hover:bg-white/50 transition-all";
+                keysSec.classList.remove('hidden'); shareSec.classList.add('hidden');
+                btnKeys.className = "flex-1 py-3.5 rounded-full bg-emerald-600 text-white font-bold shadow-md transition-all";
+                btnShare.className = "flex-1 py-3.5 rounded-full text-emerald-800 dark:text-emerald-400 font-bold hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all";
             } else {
-                keysSec.classList.add('hidden');
-                shareSec.classList.remove('hidden');
-                btnShare.className = "flex-1 py-3 rounded-full bg-orange-500 text-white font-bold shadow-md transition-all";
-                btnKeys.className = "flex-1 py-3 rounded-full text-emerald-800 font-bold hover:bg-white/50 transition-all";
+                keysSec.classList.add('hidden'); shareSec.classList.remove('hidden');
+                btnShare.className = "flex-1 py-3.5 rounded-full bg-orange-500 text-white font-bold shadow-md transition-all";
+                btnKeys.className = "flex-1 py-3.5 rounded-full text-emerald-800 dark:text-emerald-400 font-bold hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all";
             }
         }
         
         function showToast(msg) {
             const t = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
-            t.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 2500);
+            t.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-24', 'opacity-0'), 2500);
         }
     </script>
 </body>
 </html>
-
