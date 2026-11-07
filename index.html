@@ -124,14 +124,20 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-8 max-w-2xl mx-auto">
-            <div class="glass-card p-5 rounded-3xl text-center hover:shadow-lg transition-shadow border-emerald-100 dark:border-slate-600">
-                <p class="text-xs font-black text-orange-500 uppercase mb-1 tracking-wider">Total Keys</p>
-                <p id="stat-keys" class="text-4xl font-bold text-emerald-800 notranslate">0</p>
+        <!-- 3 Column Stats Board -->
+        <div class="grid grid-cols-3 gap-2 md:gap-4 mb-8 max-w-2xl mx-auto">
+            <div class="glass-card p-3 md:p-5 rounded-3xl text-center hover:shadow-lg transition-shadow border-emerald-100 dark:border-slate-600">
+                <p class="text-[10px] md:text-xs font-black text-orange-500 uppercase mb-1 tracking-wider">Total Keys</p>
+                <p id="stat-keys" class="text-2xl md:text-4xl font-bold text-emerald-800 notranslate">0</p>
             </div>
-            <div class="glass-card p-5 rounded-3xl text-center border-emerald-100 dark:border-slate-600 hover:shadow-lg transition-shadow">
-                <p class="text-xs font-black text-emerald-600 uppercase mb-1 tracking-wider">Available</p>
-                <p id="stat-avail" class="text-4xl font-bold text-orange-500 notranslate">0</p>
+            <div class="glass-card p-3 md:p-5 rounded-3xl text-center border-emerald-100 dark:border-slate-600 hover:shadow-lg transition-shadow">
+                <p class="text-[10px] md:text-xs font-black text-emerald-600 uppercase mb-1 tracking-wider">Available</p>
+                <p id="stat-avail" class="text-2xl md:text-4xl font-bold text-orange-500 notranslate">0</p>
+            </div>
+            <!-- New: My Copies Stat -->
+            <div class="glass-card p-3 md:p-5 rounded-3xl text-center border-emerald-100 dark:border-slate-600 hover:shadow-lg transition-shadow bg-emerald-50/50 dark:bg-slate-800/50">
+                <p class="text-[10px] md:text-xs font-black text-emerald-700 dark:text-emerald-500 uppercase mb-1 tracking-wider">My Copies</p>
+                <p id="stat-my-copies" class="text-2xl md:text-4xl font-bold text-emerald-900 dark:text-emerald-400 notranslate">0</p>
             </div>
         </div>
 
@@ -143,11 +149,18 @@
 
         <!-- KEYS TAB -->
         <div id="section-keys">
-            <div id="keys-container" class="space-y-4 mb-8 max-w-2xl mx-auto">
+            <div id="keys-container" class="space-y-4 mb-4 max-w-2xl mx-auto">
                 <div class="text-center py-12 glass-card rounded-3xl">
                     <div class="inline-block w-10 h-10 border-4 border-emerald-500 border-t-orange-500 rounded-full animate-spin mb-4"></div>
                     <p class="text-emerald-700 font-bold">Bismillah... Fetching Keys</p>
                 </div>
+            </div>
+            
+            <!-- Pagination Controls (New Feature) -->
+            <div id="pagination-controls" class="flex justify-between items-center mt-6 max-w-2xl mx-auto hidden pb-4">
+                <button onclick="prevPage()" id="prev-btn" class="px-5 py-2.5 bg-white dark:bg-slate-700 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-slate-600 rounded-full font-bold shadow-sm transition-all hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed">← Prev</button>
+                <span class="text-sm font-bold text-emerald-800 dark:text-emerald-400 bg-white/50 dark:bg-slate-800/50 px-4 py-2 rounded-full border border-emerald-100 dark:border-slate-600">Page <span id="page-num">1</span> of <span id="total-pages">1</span></span>
+                <button onclick="nextPage()" id="next-btn" class="px-5 py-2.5 bg-emerald-600 text-white rounded-full font-bold shadow-md transition-all hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed">Next →</button>
             </div>
         </div>
 
@@ -243,17 +256,20 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.database();
 
-        // Global tracker for existing keys (Anti-Spam)
         window.activeKeysSet = new Set();
         const ADMIN_KEY = "NG-AsI6QSDd";
 
-        // ----------------- Welcome Modal Logic -----------------
+        // Global Pagination Variables
+        let allKeysArray = [];
+        let currentPage = 1;
+        const itemsPerPage = 20;
+
+        // Welcome Modal
         setTimeout(() => {
             if (!localStorage.getItem('hasSeenWelcomeMsg')) {
                 const modal = document.getElementById('welcomeModal');
                 const modalContent = document.getElementById('welcomeModalContent');
                 modal.classList.remove('hidden');
-                
                 void modal.offsetWidth;
                 modal.classList.remove('opacity-0');
                 modalContent.classList.remove('scale-75', 'opacity-0');
@@ -264,22 +280,18 @@
         function closeWelcomeModal() {
             const modal = document.getElementById('welcomeModal');
             const modalContent = document.getElementById('welcomeModalContent');
-            
             modal.classList.add('opacity-0');
             modalContent.classList.remove('scale-100', 'opacity-100');
             modalContent.classList.add('scale-75', 'opacity-0');
-            
             setTimeout(() => {
                 modal.classList.add('hidden');
                 localStorage.setItem('hasSeenWelcomeMsg', 'true');
             }, 300);
         }
-        // -------------------------------------------------------
 
-        // ----------------- Adsterra Integration -----------------
+        // Adsterra
         const AD_URL = "https://asiafilm.org/4/6f5ba5d3f77e35b3c98127cbdc4c1c39";
         const TG_URL = "https://t.me/Ashik012098";
-        
         let copyCount = 0;
         let nextAdTarget = Math.floor(Math.random() * 3) + 5; 
         
@@ -302,45 +314,34 @@
                 window.open(TG_URL, '_blank');
             }
         }
-        // ---------------------------------------------------------
 
-        // Live Presence (Users Online)
+        // Live Presence
         const connectionsRef = db.ref('.info/connected');
         const presenceRef = db.ref('presence/' + Math.random().toString(36).substring(7));
         connectionsRef.on('value', snap => {
-            if (snap.val() === true) {
-                presenceRef.set(true);
-                presenceRef.onDisconnect().remove();
-            }
+            if (snap.val() === true) { presenceRef.set(true); presenceRef.onDisconnect().remove(); }
         });
-        db.ref('presence').on('value', snap => {
-            document.getElementById('live-users-count').innerText = snap.numChildren() || 1;
-        });
+        db.ref('presence').on('value', snap => { document.getElementById('live-users-count').innerText = snap.numChildren() || 1; });
 
         // PWA Install Prompt
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
+            e.preventDefault(); deferredPrompt = e;
             document.getElementById('installAppBtn').classList.remove('hidden');
         });
         document.getElementById('installAppBtn').addEventListener('click', async () => {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    document.getElementById('installAppBtn').classList.add('hidden');
-                }
+                if (outcome === 'accepted') { document.getElementById('installAppBtn').classList.add('hidden'); }
                 deferredPrompt = null;
             }
         });
 
-        // Dark Mode Logic
+        // Dark Mode
         const htmlRoot = document.getElementById('html-root');
         const themeToggleBtn = document.getElementById('themeToggle');
-        if (localStorage.getItem('theme') === 'dark') {
-            htmlRoot.classList.add('dark'); themeToggleBtn.innerText = '☀️';
-        }
+        if (localStorage.getItem('theme') === 'dark') { htmlRoot.classList.add('dark'); themeToggleBtn.innerText = '☀️'; }
         function toggleDarkMode() {
             htmlRoot.classList.toggle('dark');
             if(htmlRoot.classList.contains('dark')) {
@@ -381,53 +382,98 @@
             </div>`;
         }
 
-        // Fetch and Render Keys
-        db.ref('keys').limitToLast(50).on('value', (snapshot) => {
-            const container = document.getElementById('keys-container');
-            container.innerHTML = '';
+        // ================= FETCH ALL DATA WITHOUT LIMIT =================
+        db.ref('keys').on('value', (snapshot) => {
+            allKeysArray = [];
             window.activeKeysSet.clear(); 
-            window.activeKeysSet.add(ADMIN_KEY); // Protect admin key from being submitted again
-            
-            let copiedKeys = JSON.parse(localStorage.getItem('copiedKeys') || '[]');
-            let total = 0;
-            let keysArray = [];
+            window.activeKeysSet.add(ADMIN_KEY);
             
             snapshot.forEach((child) => {
-                keysArray.push({ id: child.key, data: child.val() });
-                window.activeKeysSet.add(child.val().text); // Track all live keys for anti-spam
+                allKeysArray.push({ id: child.key, data: child.val() });
+                window.activeKeysSet.add(child.val().text); 
             });
-            keysArray.reverse(); 
+            allKeysArray.reverse(); 
 
-            // Render Admin Key
+            renderPage();
+        });
+
+        // ================= PAGINATION & RENDER LOGIC =================
+        function renderPage() {
+            const container = document.getElementById('keys-container');
+            const paginationControls = document.getElementById('pagination-controls');
+            container.innerHTML = '';
+            
+            let copiedKeys = JSON.parse(localStorage.getItem('copiedKeys') || '[]');
+            
+            // Generate Available Keys List (Excluding Admin Key and Copied Keys)
+            let availableKeys = allKeysArray.filter(item => !copiedKeys.includes(item.id) && item.data.text !== ADMIN_KEY);
+            
+            // Top Stats Update
+            let totalAvailable = availableKeys.length;
+            let totalKeysAllTime = allKeysArray.length > 0 ? allKeysArray.length : 0;
+            
             if (!copiedKeys.includes('admin-key-fixed')) {
-                total++;
+                totalAvailable++; // Admin key is still available
+                totalKeysAllTime++; // Admin key counts as total
+            }
+
+            document.getElementById('stat-keys').innerText = totalKeysAllTime;
+            document.getElementById('stat-avail').innerText = totalAvailable;
+            document.getElementById('stat-my-copies').innerText = copiedKeys.length; // Live My Copies Update
+
+            // Pagination Math
+            let totalPages = Math.ceil(availableKeys.length / itemsPerPage) || 1;
+            if(currentPage > totalPages) currentPage = totalPages;
+            if(currentPage < 1) currentPage = 1;
+
+            // Render Admin Key ALWAYS on Page 1 (if not copied)
+            if (currentPage === 1 && !copiedKeys.includes('admin-key-fixed')) {
                 container.innerHTML += createKeyHTML('admin-key-fixed', ADMIN_KEY, Date.now(), true);
             }
 
-            // Render Normal Keys
-            keysArray.forEach(item => {
-                if (!copiedKeys.includes(item.id) && item.data.text !== ADMIN_KEY) {
-                    total++;
-                    container.innerHTML += createKeyHTML(item.id, item.data.text, item.data.timestamp, false);
-                }
+            // Render Keys for Current Page
+            let startIndex = (currentPage - 1) * itemsPerPage;
+            let endIndex = startIndex + itemsPerPage;
+            let keysToShow = availableKeys.slice(startIndex, endIndex);
+
+            keysToShow.forEach(item => {
+                container.innerHTML += createKeyHTML(item.id, item.data.text, item.data.timestamp, false);
             });
-            
-            document.getElementById('stat-keys').innerText = total;
-            document.getElementById('stat-avail').innerText = total;
-            
-            if(total === 0) {
+
+            // Empty State
+            if(totalAvailable === 0) {
                 container.innerHTML = `
                 <div class="glass-card p-12 text-center rounded-3xl border border-dashed border-emerald-300">
                     <span class="text-4xl block mb-3 opacity-50">📭</span>
                     <p class="text-emerald-700 font-bold text-lg">All keys used up!</p>
                     <p class="text-emerald-500 text-sm mt-1">Wait for someone to share more.</p>
                 </div>`;
+                paginationControls.classList.add('hidden');
+            } else {
+                paginationControls.classList.remove('hidden');
             }
-        });
 
-        // Copy & Auto Vanish
+            // Update Pagination Buttons UI
+            document.getElementById('page-num').innerText = currentPage;
+            document.getElementById('total-pages').innerText = totalPages;
+            document.getElementById('prev-btn').disabled = currentPage === 1;
+            document.getElementById('next-btn').disabled = currentPage === totalPages;
+        }
+
+        function nextPage() {
+            currentPage++;
+            renderPage();
+            document.getElementById('section-keys').scrollIntoView({behavior: "smooth"});
+        }
+        function prevPage() {
+            currentPage--;
+            renderPage();
+            document.getElementById('section-keys').scrollIntoView({behavior: "smooth"});
+        }
+
+        // ================= COPY & VANISH =================
         function copyAndVanish(id, text) {
-            checkCopyAd(); // Call ad rotation check
+            checkCopyAd(); 
 
             const fallbackCopy = (text) => {
                 let textArea = document.createElement("textarea");
@@ -452,10 +498,8 @@
             if (card) {
                 card.classList.add('vanish-out');
                 setTimeout(() => {
-                    card.remove();
-                    let statKeys = document.getElementById('stat-keys'); let statAvail = document.getElementById('stat-avail');
-                    statKeys.innerText = Math.max(0, parseInt(statKeys.innerText) - 1);
-                    statAvail.innerText = Math.max(0, parseInt(statAvail.innerText) - 1);
+                    // Instantly re-renders list & updates "My Copies" count automatically!
+                    renderPage(); 
                 }, 500);
             }
         }
@@ -465,25 +509,20 @@
             else { navigator.clipboard.writeText('https://nusuk.bond'); showToast('🔗 Website link copied!'); }
         }
 
-        // ----------------- SMART ANTI-SPAM SUBMIT LOGIC -----------------
+        // ================= SUBMIT SPAM PROTECTOR =================
         function submitKeysToFirebase() {
             const area = document.getElementById('keyInputArea');
             let rawLines = area.value.split('\n').map(l => l.trim()).filter(l => l.startsWith('NG-') || l.includes('nusuk'));
             
             if(rawLines.length === 0) { showToast('❌ Enter valid keys starting with NG-'); return; }
             
-            // 1. Remove duplicate lines from the user's input box
             let uniqueInputKeys = [...new Set(rawLines)];
-
-            // 2. Filter out keys that are already active on the board
             let finalNewKeys = uniqueInputKeys.filter(keyText => !window.activeKeysSet.has(keyText));
 
             if(finalNewKeys.length === 0) {
-                showToast('⚠️ All these keys are already on the board!');
-                return;
+                showToast('⚠️ All these keys are already on the board!'); return;
             }
             
-            // Submit only fresh keys
             finalNewKeys.forEach(keyText => {
                 db.ref('keys').push({
                     text: keyText, timestamp: firebase.database.ServerValue.TIMESTAMP
@@ -491,13 +530,12 @@
             });
             area.value = '';
             
-            // Trigger Confetti Celebration!
             confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#10b981', '#f97316', '#ffffff'] });
-            
             showToast(`🎉 ${finalNewKeys.length} New Key(s) Shared! Jazakallah Khair!`);
             setTimeout(() => { switchTab('keys'); }, 2000); 
         }
 
+        // ================= TAB SWITCHER =================
         function switchTab(tab) {
             const keysSec = document.getElementById('section-keys'); const shareSec = document.getElementById('section-share');
             const btnKeys = document.getElementById('tab-btn-keys'); const btnShare = document.getElementById('tab-btn-share');
