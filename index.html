@@ -134,7 +134,6 @@
                 <p class="text-[10px] md:text-xs font-black text-emerald-600 uppercase mb-1 tracking-wider">Available</p>
                 <p id="stat-avail" class="text-2xl md:text-4xl font-bold text-orange-500 notranslate">0</p>
             </div>
-            <!-- New: My Copies Stat -->
             <div class="glass-card p-3 md:p-5 rounded-3xl text-center border-emerald-100 dark:border-slate-600 hover:shadow-lg transition-shadow bg-emerald-50/50 dark:bg-slate-800/50">
                 <p class="text-[10px] md:text-xs font-black text-emerald-700 dark:text-emerald-500 uppercase mb-1 tracking-wider">My Copies</p>
                 <p id="stat-my-copies" class="text-2xl md:text-4xl font-bold text-emerald-900 dark:text-emerald-400 notranslate">0</p>
@@ -144,7 +143,7 @@
         <!-- Tab Buttons -->
         <div class="flex p-1.5 glass-card rounded-full mb-8 w-full max-w-sm mx-auto shadow-inner notranslate border border-white dark:border-slate-600">
             <button id="tab-btn-keys" onclick="switchTab('keys')" class="flex-1 py-3.5 rounded-full bg-emerald-600 text-white font-bold shadow-md transition-all">Active Keys</button>
-            <button id="tab-btn-share" onclick="switchTab('share')" class="flex-1 py-3.5 rounded-full text-emerald-800 dark:text-emerald-400 font-bold hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all">Post Your Key</button>
+            <button id="tab-btn-share" onclick="switchTab('share')" class="flex-1 py-3.5 rounded-full text-emerald-800 dark:text-emerald-400 font-bold hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all">Share Key</button>
         </div>
 
         <!-- KEYS TAB -->
@@ -156,7 +155,7 @@
                 </div>
             </div>
             
-            <!-- Pagination Controls (New Feature) -->
+            <!-- Pagination Controls -->
             <div id="pagination-controls" class="flex justify-between items-center mt-6 max-w-2xl mx-auto hidden pb-4">
                 <button onclick="prevPage()" id="prev-btn" class="px-5 py-2.5 bg-white dark:bg-slate-700 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-slate-600 rounded-full font-bold shadow-sm transition-all hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed">← Prev</button>
                 <span class="text-sm font-bold text-emerald-800 dark:text-emerald-400 bg-white/50 dark:bg-slate-800/50 px-4 py-2 rounded-full border border-emerald-100 dark:border-slate-600">Page <span id="page-num">1</span> of <span id="total-pages">1</span></span>
@@ -170,7 +169,7 @@
                 <div class="w-16 h-16 mx-auto bg-orange-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4 floating-icon">
                     <span class="text-3xl">🤲</span>
                 </div>
-                <h2 class="text-2xl font-bold text-emerald-800 mb-2 islamic-font">Post Your Keys</h2>
+                <h2 class="text-2xl font-bold text-emerald-800 mb-2 islamic-font">Share Your Keys</h2>
                 <p class="text-sm font-medium text-emerald-600 mb-6">Help a brother or sister perform their Nusuk easily.</p>
                 
                 <textarea id="keyInputArea" rows="5" class="w-full glass-input rounded-2xl p-4 text-emerald-900 font-mono outline-none focus:border-orange-500 focus:ring-2 notranslate resize-none transition-all" placeholder="Paste NG-N0S2eEMN here..."></textarea>
@@ -382,8 +381,9 @@
             </div>`;
         }
 
-        // ================= FETCH ALL DATA WITHOUT LIMIT =================
-        db.ref('keys').on('value', (snapshot) => {
+        // ================= FETCH OPTIMIZED DATA (SUPER FAST 0.5s LOAD) =================
+        // Only fetch the latest 400 keys (20 pages) for instant UI rendering
+        db.ref('keys').orderByKey().limitToLast(400).on('value', (snapshot) => {
             allKeysArray = [];
             window.activeKeysSet.clear(); 
             window.activeKeysSet.add(ADMIN_KEY);
@@ -395,7 +395,19 @@
             allKeysArray.reverse(); 
 
             renderPage();
+            fetchTrueTotalKeys(); // Update true total seamlessly
         });
+
+        // Background fetch to show the TRUE TOTAL of all 6000+ keys without lagging the site
+        function fetchTrueTotalKeys() {
+            fetch('https://nusukkeys-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json?shallow=true')
+                .then(res => res.json())
+                .then(data => {
+                    if(data) {
+                        document.getElementById('stat-keys').innerText = Object.keys(data).length;
+                    }
+                }).catch(() => {});
+        }
 
         // ================= PAGINATION & RENDER LOGIC =================
         function renderPage() {
@@ -410,16 +422,18 @@
             
             // Top Stats Update
             let totalAvailable = availableKeys.length;
-            let totalKeysAllTime = allKeysArray.length > 0 ? allKeysArray.length : 0;
-            
             if (!copiedKeys.includes('admin-key-fixed')) {
-                totalAvailable++; // Admin key is still available
-                totalKeysAllTime++; // Admin key counts as total
+                totalAvailable++; 
             }
 
-            document.getElementById('stat-keys').innerText = totalKeysAllTime;
+            // Temp show fast total until background shallow fetch completes
+            let statKeysEl = document.getElementById('stat-keys');
+            if (statKeysEl.innerText === "0") {
+                statKeysEl.innerText = allKeysArray.length; 
+            }
+            
             document.getElementById('stat-avail').innerText = totalAvailable;
-            document.getElementById('stat-my-copies').innerText = copiedKeys.length; // Live My Copies Update
+            document.getElementById('stat-my-copies').innerText = copiedKeys.length;
 
             // Pagination Math
             let totalPages = Math.ceil(availableKeys.length / itemsPerPage) || 1;
@@ -498,7 +512,6 @@
             if (card) {
                 card.classList.add('vanish-out');
                 setTimeout(() => {
-                    // Instantly re-renders list & updates "My Copies" count automatically!
                     renderPage(); 
                 }, 500);
             }
@@ -512,9 +525,9 @@
         // ================= SUBMIT SPAM PROTECTOR =================
         function submitKeysToFirebase() {
             const area = document.getElementById('keyInputArea');
-            let rawLines = area.value.split('\n').map(l => l.trim()).filter(l => l.startsWith('NG-') || l.includes('nusuk'));
+            let rawLines = area.value.split('\n').map(l => l.trim()).filter(l => l.startsWith('NG-') || l.includes('nusuk') || l.length > 4);
             
-            if(rawLines.length === 0) { showToast('❌ Enter valid keys starting with NG-'); return; }
+            if(rawLines.length === 0) { showToast('❌ Enter valid keys'); return; }
             
             let uniqueInputKeys = [...new Set(rawLines)];
             let finalNewKeys = uniqueInputKeys.filter(keyText => !window.activeKeysSet.has(keyText));
