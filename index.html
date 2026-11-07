@@ -4,17 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nusuk Keys - Premium Exchange</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Nusuk%20Keys%22%2C%22short_name%22%3A%22Nusuk%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ecfdf5%22%2C%22theme_color%22%3A%22%2310b981%22%7D">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
+        tailwind.config = { darkMode: 'class', }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <!-- Confetti Animation -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <style>
         body { 
@@ -26,21 +32,9 @@
         }
         
         /* Dark Mode */
-        html.dark body {
-            background-color: #0f172a;
-            background-image: none;
-            color: #cbd5e1;
-        }
-        html.dark .glass-card {
-            background: rgba(15, 23, 42, 0.7);
-            border-color: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-        html.dark .glass-input {
-            background: rgba(30, 41, 59, 0.9);
-            color: #10b981;
-            border-color: rgba(16, 185, 129, 0.2);
-        }
+        html.dark body { background-color: #0f172a; background-image: none; color: #cbd5e1; }
+        html.dark .glass-card { background: rgba(15, 23, 42, 0.7); border-color: rgba(255, 255, 255, 0.1); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+        html.dark .glass-input { background: rgba(30, 41, 59, 0.9); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
         html.dark .text-emerald-800 { color: #34d399; }
         html.dark .text-emerald-900 { color: #6ee7b7; }
         html.dark .text-emerald-700 { color: #10b981; }
@@ -48,16 +42,11 @@
         h1, .islamic-font { font-family: 'Amiri', serif; }
         
         .glass-card {
-            background: rgba(255, 255, 255, 0.65);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.1);
+            background: rgba(255, 255, 255, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8); box-shadow: 0 8px 32px rgba(16, 185, 129, 0.1);
         }
         .glass-input {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(16, 185, 129, 0.4);
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(16, 185, 129, 0.4); box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
 
         /* HIDE TRANSLATE WIDGET */
@@ -67,23 +56,31 @@
         .skiptranslate { display: none !important; }
 
         /* Animations */
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
-            100% { transform: translateY(0px); }
-        }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }
         .floating-icon { animation: float 3s ease-in-out infinite; }
-        
-        /* Auto Vanish Animation */
-        .vanish-out {
-            opacity: 0;
-            transform: scale(0.9) translateY(-10px);
-            transition: all 0.5s ease-out;
-            pointer-events: none;
-        }
+        .vanish-out { opacity: 0; transform: scale(0.9) translateY(-10px); transition: all 0.5s ease-out; pointer-events: none; }
+        .pulse-dot { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
     </style>
 </head>
 <body class="antialiased relative min-h-screen flex flex-col text-[#064e3b]">
+
+    <!-- Welcome Modal Pop-up -->
+    <div id="welcomeModal" class="fixed inset-0 bg-emerald-900/60 dark:bg-slate-900/80 backdrop-blur-sm z-[100] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="glass-card p-8 rounded-3xl max-w-sm mx-4 text-center transform scale-75 transition-all duration-300 opacity-0 border border-white dark:border-slate-600 shadow-2xl" id="welcomeModalContent">
+            <div class="w-20 h-20 mx-auto bg-emerald-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-5 shadow-inner">
+                <span class="text-5xl">🕋</span>
+            </div>
+            <h3 class="text-2xl font-bold text-emerald-800 dark:text-emerald-400 islamic-font mb-3">Welcome to Nusuk Keys</h3>
+            <p class="text-sm text-emerald-700 dark:text-slate-300 mb-6 font-medium leading-relaxed">
+                Let's help each other by sharing valid keys with the community.<br><br>
+                <span class="text-emerald-900 dark:text-emerald-300 font-bold block bg-emerald-50/50 dark:bg-slate-800/50 p-4 rounded-xl border border-emerald-200 dark:border-slate-600 shadow-sm text-base">
+                    May Allah (SWT) grant us all the Tawfiq to visit the Holy Kaaba. Ameen! 🤲
+                </span>
+            </p>
+            <button onclick="closeWelcomeModal()" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-bold rounded-full shadow-lg hover:from-orange-500 hover:to-orange-400 transition-all active:scale-95 text-lg uppercase tracking-wider">Ameen</button>
+        </div>
+    </div>
 
     <!-- Gradients -->
     <div class="absolute top-0 left-0 w-80 h-80 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 -z-10 dark:opacity-10"></div>
@@ -105,25 +102,34 @@
                 </div>
             </div>
             
-            <!-- Language Buttons & Dark Mode -->
-            <div class="flex justify-center items-center gap-2">
-                <button onclick="changeCustomLanguage('en')" class="px-4 py-1.5 bg-white dark:bg-slate-700 hover:bg-orange-50 text-emerald-800 border-2 border-emerald-100 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm transition-all hover:scale-105 active:scale-95">Eng</button>
-                <button onclick="changeCustomLanguage('bn')" class="px-4 py-1.5 bg-white dark:bg-slate-700 hover:bg-orange-50 text-emerald-800 border-2 border-emerald-100 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm transition-all hover:scale-105 active:scale-95">বাংলা</button>
-                <button onclick="changeCustomLanguage('ar')" class="px-4 py-1.5 bg-white dark:bg-slate-700 hover:bg-orange-50 text-emerald-800 border-2 border-emerald-100 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm transition-all hover:scale-105 active:scale-95 islamic-font text-sm">العربية</button>
-                <button onclick="toggleDarkMode()" id="themeToggle" class="ml-2 w-9 h-9 rounded-full bg-white dark:bg-slate-700 border-2 border-emerald-100 dark:border-slate-600 flex items-center justify-center text-lg shadow-sm hover:scale-105 transition-all">🌙</button>
+            <!-- Actions -->
+            <div class="flex justify-center items-center gap-2 flex-wrap">
+                <button id="installAppBtn" class="hidden px-3 py-1.5 bg-gradient-to-r from-orange-500 to-orange-400 text-white rounded-full text-xs font-bold shadow-sm transition-all hover:scale-105 active:scale-95 flex items-center gap-1">📱 Install App</button>
+                
+                <button onclick="changeCustomLanguage('en')" class="px-3 py-1.5 bg-white dark:bg-slate-700 hover:bg-orange-50 text-emerald-800 border-2 border-emerald-100 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm transition-all hover:scale-105 active:scale-95">Eng</button>
+                <button onclick="changeCustomLanguage('bn')" class="px-3 py-1.5 bg-white dark:bg-slate-700 hover:bg-orange-50 text-emerald-800 border-2 border-emerald-100 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm transition-all hover:scale-105 active:scale-95">বাংলা</button>
+                <button onclick="changeCustomLanguage('ar')" class="px-3 py-1.5 bg-white dark:bg-slate-700 hover:bg-orange-50 text-emerald-800 border-2 border-emerald-100 dark:border-slate-600 rounded-full text-xs font-bold shadow-sm transition-all hover:scale-105 active:scale-95 islamic-font text-sm">العربية</button>
+                <button onclick="toggleDarkMode()" id="themeToggle" class="ml-1 w-9 h-9 rounded-full bg-white dark:bg-slate-700 border-2 border-emerald-100 dark:border-slate-600 flex items-center justify-center text-lg shadow-sm hover:scale-105 transition-all">🌙</button>
             </div>
         </div>
     </header>
 
     <main class="max-w-4xl mx-auto px-4 py-8 relative z-10 flex-grow w-full">
         
-        <!-- Stats -->
+        <!-- Live Users -->
+        <div class="max-w-2xl mx-auto mb-4 flex justify-center">
+            <div class="glass-card px-4 py-1.5 rounded-full flex items-center gap-2 border border-emerald-200 shadow-sm">
+                <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full pulse-dot"></span>
+                <span class="text-xs font-bold text-emerald-800 dark:text-emerald-400"><span id="live-users-count">1</span> Users Online</span>
+            </div>
+        </div>
+
         <div class="grid grid-cols-2 gap-4 mb-8 max-w-2xl mx-auto">
-            <div class="glass-card p-5 rounded-3xl text-center hover:shadow-lg transition-shadow">
+            <div class="glass-card p-5 rounded-3xl text-center hover:shadow-lg transition-shadow border-emerald-100 dark:border-slate-600">
                 <p class="text-xs font-black text-orange-500 uppercase mb-1 tracking-wider">Total Keys</p>
                 <p id="stat-keys" class="text-4xl font-bold text-emerald-800 notranslate">0</p>
             </div>
-            <div class="glass-card p-5 rounded-3xl text-center border-emerald-200 dark:border-slate-600 hover:shadow-lg transition-shadow">
+            <div class="glass-card p-5 rounded-3xl text-center border-emerald-100 dark:border-slate-600 hover:shadow-lg transition-shadow">
                 <p class="text-xs font-black text-emerald-600 uppercase mb-1 tracking-wider">Available</p>
                 <p id="stat-avail" class="text-4xl font-bold text-orange-500 notranslate">0</p>
             </div>
@@ -135,7 +141,7 @@
             <button id="tab-btn-share" onclick="switchTab('share')" class="flex-1 py-3.5 rounded-full text-emerald-800 dark:text-emerald-400 font-bold hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all">Share Key</button>
         </div>
 
-        <!-- ================= KEYS TAB ================= -->
+        <!-- KEYS TAB -->
         <div id="section-keys">
             <div id="keys-container" class="space-y-4 mb-8 max-w-2xl mx-auto">
                 <div class="text-center py-12 glass-card rounded-3xl">
@@ -145,7 +151,7 @@
             </div>
         </div>
 
-        <!-- ================= SHARE TAB ================= -->
+        <!-- SHARE TAB -->
         <div id="section-share" class="hidden">
             <div class="glass-card p-8 rounded-3xl text-center max-w-2xl mx-auto border-t border-white dark:border-slate-600 shadow-xl">
                 <div class="w-16 h-16 mx-auto bg-orange-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4 floating-icon">
@@ -197,10 +203,10 @@
         </div>
     </footer>
 
-    <!-- Floating TG -->
-    <a href="https://t.me/Ashik012098" target="_blank" class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-tr from-[#0088cc] to-[#33aadd] rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all z-50 floating-icon border-2 border-white/20">
+    <!-- Floating TG Support with Ads Logic -->
+    <button onclick="handleSupportClick()" class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-tr from-[#0088cc] to-[#33aadd] rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 active:scale-95 transition-all z-50 floating-icon border-2 border-white/20">
         <svg class="w-7 h-7 ml-[-2px]" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a5.66 5.66 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.892-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-    </a>
+    </button>
 
     <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-emerald-900 dark:bg-slate-800 text-white px-8 py-3.5 rounded-full shadow-2xl transform translate-y-24 opacity-0 transition-all duration-300 z-50 font-bold flex items-center gap-3 border border-emerald-700 notranslate">
@@ -210,13 +216,8 @@
     <!-- Scripts -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'en', 
-                includedLanguages: 'en,bn,ar',
-                autoDisplay: false
-            }, 'google_translate_element');
+            new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'en,bn,ar', autoDisplay: false }, 'google_translate_element');
         }
-        
         function changeCustomLanguage(langCode) {
             let cookieValue = `/en/${langCode}`;
             if(langCode === 'en') { cookieValue = '/en/en'; }
@@ -242,21 +243,107 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.database();
 
+        // ----------------- Welcome Modal Logic -----------------
+        setTimeout(() => {
+            if (!localStorage.getItem('hasSeenWelcomeMsg')) {
+                const modal = document.getElementById('welcomeModal');
+                const modalContent = document.getElementById('welcomeModalContent');
+                modal.classList.remove('hidden');
+                
+                // Trigger animation
+                void modal.offsetWidth;
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-75', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }
+        }, 1500);
+
+        function closeWelcomeModal() {
+            const modal = document.getElementById('welcomeModal');
+            const modalContent = document.getElementById('welcomeModalContent');
+            
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-75', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                localStorage.setItem('hasSeenWelcomeMsg', 'true');
+            }, 300);
+        }
+        // -------------------------------------------------------
+
+        // ----------------- Adsterra Integration -----------------
+        const AD_URL = "https://asiafilm.org/4/6f5ba5d3f77e35b3c98127cbdc4c1c39";
+        const TG_URL = "https://t.me/Ashik012098";
+        
+        let copyCount = 0;
+        let nextAdTarget = Math.floor(Math.random() * 3) + 5; 
+        
+        function checkCopyAd() {
+            copyCount++;
+            if (copyCount >= nextAdTarget) {
+                window.open(AD_URL, '_blank');
+                copyCount = 0;
+                nextAdTarget = Math.floor(Math.random() * 3) + 5; 
+            }
+        }
+
+        let supportClickedFirstTime = false;
+        function handleSupportClick() {
+            if (!supportClickedFirstTime) {
+                window.open(AD_URL, '_blank'); 
+                showToast('🚀 Opening Support, click again if it didn\'t open!');
+                supportClickedFirstTime = true;
+            } else {
+                window.open(TG_URL, '_blank');
+            }
+        }
+        // ---------------------------------------------------------
+
+        // Live Presence (Users Online)
+        const connectionsRef = db.ref('.info/connected');
+        const presenceRef = db.ref('presence/' + Math.random().toString(36).substring(7));
+        connectionsRef.on('value', snap => {
+            if (snap.val() === true) {
+                presenceRef.set(true);
+                presenceRef.onDisconnect().remove();
+            }
+        });
+        db.ref('presence').on('value', snap => {
+            document.getElementById('live-users-count').innerText = snap.numChildren() || 1;
+        });
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installAppBtn').classList.remove('hidden');
+        });
+        document.getElementById('installAppBtn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('installAppBtn').classList.add('hidden');
+                }
+                deferredPrompt = null;
+            }
+        });
+
         // Dark Mode Logic
         const htmlRoot = document.getElementById('html-root');
         const themeToggleBtn = document.getElementById('themeToggle');
         if (localStorage.getItem('theme') === 'dark') {
-            htmlRoot.classList.add('dark');
-            themeToggleBtn.innerText = '☀️';
+            htmlRoot.classList.add('dark'); themeToggleBtn.innerText = '☀️';
         }
         function toggleDarkMode() {
             htmlRoot.classList.toggle('dark');
             if(htmlRoot.classList.contains('dark')) {
-                localStorage.setItem('theme', 'dark');
-                themeToggleBtn.innerText = '☀️';
+                localStorage.setItem('theme', 'dark'); themeToggleBtn.innerText = '☀️';
             } else {
-                localStorage.setItem('theme', 'light');
-                themeToggleBtn.innerText = '🌙';
+                localStorage.setItem('theme', 'light'); themeToggleBtn.innerText = '🌙';
             }
         }
 
@@ -309,17 +396,14 @@
             snapshot.forEach((child) => {
                 keysArray.push({ id: child.key, data: child.val() });
             });
-            keysArray.reverse(); // Show newest first
+            keysArray.reverse(); 
 
-            // 1. Render Admin Key at the top (if not copied yet)
             if (!copiedKeys.includes('admin-key-fixed')) {
                 total++;
                 container.innerHTML += createKeyHTML('admin-key-fixed', ADMIN_KEY, Date.now(), 99, 0, true);
             }
 
-            // 2. Render other keys
             keysArray.forEach(item => {
-                // Ignore if it's already copied OR if it's the admin key (handled above)
                 if (!copiedKeys.includes(item.id) && item.data.text !== ADMIN_KEY) {
                     total++;
                     container.innerHTML += createKeyHTML(item.id, item.data.text, item.data.timestamp, item.data.upvotes || 0, item.data.downvotes || 0, false);
@@ -339,60 +423,41 @@
             }
         });
 
-        // Copy Bug Fix & Vanish System
+        // Copy & Auto Vanish
         function copyAndVanish(id, text) {
-            // Fallback Copy Function (Works without HTTPS/SSL)
+            checkCopyAd(); // Call ad rotation check
+
             const fallbackCopy = (text) => {
                 let textArea = document.createElement("textarea");
-                textArea.value = text;
-                textArea.style.position = "fixed";
-                textArea.style.left = "-9999px";
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                try {
-                    document.execCommand('copy');
-                    triggerVanish(id);
-                } catch (err) {
-                    showToast('❌ Copy failed! Your browser blocked it.');
-                }
+                textArea.value = text; textArea.style.position = "fixed"; textArea.style.left = "-9999px";
+                document.body.appendChild(textArea); textArea.focus(); textArea.select();
+                try { document.execCommand('copy'); triggerVanish(id); } catch (err) { showToast('❌ Copy failed!'); }
                 document.body.removeChild(textArea);
             };
 
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(text).then(() => triggerVanish(id)).catch(() => fallbackCopy(text));
-            } else {
-                fallbackCopy(text);
-            }
+            } else { fallbackCopy(text); }
         }
 
-        // Auto Vanish & Save to LocalStorage
         function triggerVanish(id) {
             showToast('📋 Key Copied & Vanished!');
-            
-            // Save to LocalStorage so it never shows again
             let copiedKeys = JSON.parse(localStorage.getItem('copiedKeys') || '[]');
             if (!copiedKeys.includes(id)) {
-                copiedKeys.push(id);
-                localStorage.setItem('copiedKeys', JSON.stringify(copiedKeys));
+                copiedKeys.push(id); localStorage.setItem('copiedKeys', JSON.stringify(copiedKeys));
             }
-
-            // Animate out
             let card = document.getElementById('key-card-' + id);
             if (card) {
                 card.classList.add('vanish-out');
                 setTimeout(() => {
                     card.remove();
-                    // Update Live Stats
-                    let statKeys = document.getElementById('stat-keys');
-                    let statAvail = document.getElementById('stat-avail');
+                    let statKeys = document.getElementById('stat-keys'); let statAvail = document.getElementById('stat-avail');
                     statKeys.innerText = Math.max(0, parseInt(statKeys.innerText) - 1);
                     statAvail.innerText = Math.max(0, parseInt(statAvail.innerText) - 1);
                 }, 500);
             }
         }
 
-        // Vote, Share & Switch Tab Logic
         function voteKey(keyId, type) {
             if(keyId === 'admin-key-fixed') { showToast('Thanks for voting!'); return; }
             db.ref(`keys/${keyId}/${type}`).transaction((current) => (current || 0) + 1);
@@ -400,14 +465,11 @@
         }
 
         function shareWebsite() {
-            if (navigator.share) {
-                navigator.share({ title: 'Nusuk Keys Exchange', url: 'https://nusuk.bond' });
-            } else {
-                navigator.clipboard.writeText('https://nusuk.bond');
-                showToast('🔗 Website link copied!');
-            }
+            if (navigator.share) { navigator.share({ title: 'Nusuk Keys Exchange', url: 'https://nusuk.bond' }); } 
+            else { navigator.clipboard.writeText('https://nusuk.bond'); showToast('🔗 Website link copied!'); }
         }
 
+        // Submit Keys (With Confetti)
         function submitKeysToFirebase() {
             const area = document.getElementById('keyInputArea');
             const lines = area.value.split('\n').map(l => l.trim()).filter(l => l.startsWith('NG-') || l.includes('nusuk'));
@@ -415,22 +477,21 @@
             
             lines.forEach(keyText => {
                 db.ref('keys').push({
-                    text: keyText,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP,
-                    upvotes: 0, downvotes: 0
+                    text: keyText, timestamp: firebase.database.ServerValue.TIMESTAMP, upvotes: 0, downvotes: 0
                 });
             });
             area.value = '';
-            showToast(`✅ ${lines.length} Key(s) Shared!`);
-            setTimeout(() => { switchTab('keys'); }, 1200);
+            
+            // Trigger Confetti Celebration!
+            confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#10b981', '#f97316', '#ffffff'] });
+            
+            showToast(`🎉 ${lines.length} Key(s) Shared! Jazakallah Khair!`);
+            setTimeout(() => { switchTab('keys'); }, 2000); 
         }
 
         function switchTab(tab) {
-            const keysSec = document.getElementById('section-keys');
-            const shareSec = document.getElementById('section-share');
-            const btnKeys = document.getElementById('tab-btn-keys');
-            const btnShare = document.getElementById('tab-btn-share');
-
+            const keysSec = document.getElementById('section-keys'); const shareSec = document.getElementById('section-share');
+            const btnKeys = document.getElementById('tab-btn-keys'); const btnShare = document.getElementById('tab-btn-share');
             if(tab === 'keys') {
                 keysSec.classList.remove('hidden'); shareSec.classList.add('hidden');
                 btnKeys.className = "flex-1 py-3.5 rounded-full bg-emerald-600 text-white font-bold shadow-md transition-all";
@@ -443,8 +504,7 @@
         }
         
         function showToast(msg) {
-            const t = document.getElementById('toast');
-            document.getElementById('toast-msg').innerText = msg;
+            const t = document.getElementById('toast'); document.getElementById('toast-msg').innerText = msg;
             t.classList.remove('translate-y-24', 'opacity-0');
             setTimeout(() => t.classList.add('translate-y-24', 'opacity-0'), 2500);
         }
