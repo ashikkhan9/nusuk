@@ -143,7 +143,7 @@
         <!-- Tab Buttons -->
         <div class="flex p-1.5 glass-card rounded-full mb-8 w-full max-w-sm mx-auto shadow-inner notranslate border border-white dark:border-slate-600">
             <button id="tab-btn-keys" onclick="switchTab('keys')" class="flex-1 py-3.5 rounded-full bg-emerald-600 text-white font-bold shadow-md transition-all">Active Keys</button>
-            <button id="tab-btn-share" onclick="switchTab('share')" class="flex-1 py-3.5 rounded-full text-emerald-800 dark:text-emerald-400 font-bold hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all">Share Key</button>
+            <button id="tab-btn-share" onclick="switchTab('share')" class="flex-1 py-3.5 rounded-full text-emerald-800 dark:text-emerald-400 font-bold hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all">Post&Earn Key</button>
         </div>
 
         <!-- KEYS TAB -->
@@ -169,7 +169,7 @@
                 <div class="w-16 h-16 mx-auto bg-orange-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4 floating-icon">
                     <span class="text-3xl">🤲</span>
                 </div>
-                <h2 class="text-2xl font-bold text-emerald-800 mb-2 islamic-font">Share Your Keys</h2>
+                <h2 class="text-2xl font-bold text-emerald-800 mb-2 islamic-font">Post&Earn Keys</h2>
                 <p class="text-sm font-medium text-emerald-600 mb-6">Help a brother or sister perform their Nusuk easily.</p>
                 
                 <textarea id="keyInputArea" rows="5" class="w-full glass-input rounded-2xl p-4 text-emerald-900 font-mono outline-none focus:border-orange-500 focus:ring-2 notranslate resize-none transition-all" placeholder="Paste NG-N0S2eEMN here..."></textarea>
@@ -262,6 +262,7 @@
         let allKeysArray = [];
         let currentPage = 1;
         const itemsPerPage = 20;
+        let trueTotalKeys = 0;
 
         // Welcome Modal
         setTimeout(() => {
@@ -381,9 +382,30 @@
             </div>`;
         }
 
+        // ================= GET ORIGINAL TRUE TOTAL COUNT =================
+        function fetchTrueTotalKeys() {
+            fetch('https://nusukkeys-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json?shallow=true')
+                .then(res => res.json())
+                .then(data => {
+                    if(data) {
+                        trueTotalKeys = Object.keys(data).length;
+                        let copiedKeys = JSON.parse(localStorage.getItem('copiedKeys') || '[]');
+                        if (!copiedKeys.includes('admin-key-fixed')) { trueTotalKeys++; }
+                        
+                        document.getElementById('stat-keys').innerText = trueTotalKeys;
+                        
+                        let available = trueTotalKeys - copiedKeys.length;
+                        document.getElementById('stat-avail').innerText = available > 0 ? available : 0;
+                    }
+                }).catch(() => {});
+        }
+        
+        // Call immediately for instant stats
+        fetchTrueTotalKeys();
+
         // ================= FETCH OPTIMIZED DATA (SUPER FAST 0.5s LOAD) =================
-        // Only fetch the latest 400 keys (20 pages) for instant UI rendering
-        db.ref('keys').orderByKey().limitToLast(400).on('value', (snapshot) => {
+        // Loads latest 5000 keys (250 pages) into memory for zero lag
+        db.ref('keys').orderByKey().limitToLast(5000).on('value', (snapshot) => {
             allKeysArray = [];
             window.activeKeysSet.clear(); 
             window.activeKeysSet.add(ADMIN_KEY);
@@ -395,19 +417,8 @@
             allKeysArray.reverse(); 
 
             renderPage();
-            fetchTrueTotalKeys(); // Update true total seamlessly
+            fetchTrueTotalKeys(); // Refresh the true total when database changes
         });
-
-        // Background fetch to show the TRUE TOTAL of all 6000+ keys without lagging the site
-        function fetchTrueTotalKeys() {
-            fetch('https://nusukkeys-default-rtdb.asia-southeast1.firebasedatabase.app/keys.json?shallow=true')
-                .then(res => res.json())
-                .then(data => {
-                    if(data) {
-                        document.getElementById('stat-keys').innerText = Object.keys(data).length;
-                    }
-                }).catch(() => {});
-        }
 
         // ================= PAGINATION & RENDER LOGIC =================
         function renderPage() {
@@ -416,25 +427,11 @@
             container.innerHTML = '';
             
             let copiedKeys = JSON.parse(localStorage.getItem('copiedKeys') || '[]');
+            document.getElementById('stat-my-copies').innerText = copiedKeys.length;
             
-            // Generate Available Keys List (Excluding Admin Key and Copied Keys)
+            // Available Keys List (Excluding Admin Key and Copied Keys) from memory
             let availableKeys = allKeysArray.filter(item => !copiedKeys.includes(item.id) && item.data.text !== ADMIN_KEY);
             
-            // Top Stats Update
-            let totalAvailable = availableKeys.length;
-            if (!copiedKeys.includes('admin-key-fixed')) {
-                totalAvailable++; 
-            }
-
-            // Temp show fast total until background shallow fetch completes
-            let statKeysEl = document.getElementById('stat-keys');
-            if (statKeysEl.innerText === "0") {
-                statKeysEl.innerText = allKeysArray.length; 
-            }
-            
-            document.getElementById('stat-avail').innerText = totalAvailable;
-            document.getElementById('stat-my-copies').innerText = copiedKeys.length;
-
             // Pagination Math
             let totalPages = Math.ceil(availableKeys.length / itemsPerPage) || 1;
             if(currentPage > totalPages) currentPage = totalPages;
@@ -455,7 +452,7 @@
             });
 
             // Empty State
-            if(totalAvailable === 0) {
+            if(availableKeys.length === 0 && copiedKeys.includes('admin-key-fixed')) {
                 container.innerHTML = `
                 <div class="glass-card p-12 text-center rounded-3xl border border-dashed border-emerald-300">
                     <span class="text-4xl block mb-3 opacity-50">📭</span>
@@ -511,6 +508,12 @@
             let card = document.getElementById('key-card-' + id);
             if (card) {
                 card.classList.add('vanish-out');
+                
+                // Update true counters instantly without reloading the database
+                let currentAvail = parseInt(document.getElementById('stat-avail').innerText);
+                if(currentAvail > 0) document.getElementById('stat-avail').innerText = currentAvail - 1;
+                document.getElementById('stat-my-copies').innerText = copiedKeys.length;
+
                 setTimeout(() => {
                     renderPage(); 
                 }, 500);
