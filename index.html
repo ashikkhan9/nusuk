@@ -228,7 +228,7 @@
     </script>
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
-    <!-- FIREBASE -->
+    <!-- FIREBASE & CORE LOGIC -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCLnmqPCaq4fIUNZp-9IkkE1xBOIBhkyKo",
@@ -243,6 +243,10 @@
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.database();
 
+        // Global tracker for existing keys (Anti-Spam)
+        window.activeKeysSet = new Set();
+        const ADMIN_KEY = "NG-AsI6QSDd";
+
         // ----------------- Welcome Modal Logic -----------------
         setTimeout(() => {
             if (!localStorage.getItem('hasSeenWelcomeMsg')) {
@@ -250,7 +254,6 @@
                 const modalContent = document.getElementById('welcomeModalContent');
                 modal.classList.remove('hidden');
                 
-                // Trigger animation
                 void modal.offsetWidth;
                 modal.classList.remove('opacity-0');
                 modalContent.classList.remove('scale-75', 'opacity-0');
@@ -358,8 +361,6 @@
             return `${Math.floor(hours / 24)}d ago`;
         }
 
-        const ADMIN_KEY = "NG-AsI6QSDd";
-
         function createKeyHTML(id, text, timestamp, upvotes = 0, downvotes = 0, isAdmin = false) {
             let pinBadge = isAdmin ? `<span class="bg-gradient-to-r from-orange-500 to-orange-400 text-white text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider font-bold mb-1.5 inline-flex items-center gap-1 shadow-sm">📌 Pinned by Admin</span><br>` : '';
             return `
@@ -388,6 +389,8 @@
         db.ref('keys').limitToLast(50).on('value', (snapshot) => {
             const container = document.getElementById('keys-container');
             container.innerHTML = '';
+            window.activeKeysSet.clear(); 
+            window.activeKeysSet.add(ADMIN_KEY); // Protect admin key from being submitted again
             
             let copiedKeys = JSON.parse(localStorage.getItem('copiedKeys') || '[]');
             let total = 0;
@@ -395,6 +398,7 @@
             
             snapshot.forEach((child) => {
                 keysArray.push({ id: child.key, data: child.val() });
+                window.activeKeysSet.add(child.val().text); // Track all live keys for anti-spam
             });
             keysArray.reverse(); 
 
@@ -469,13 +473,26 @@
             else { navigator.clipboard.writeText('https://nusuk.bond'); showToast('🔗 Website link copied!'); }
         }
 
-        // Submit Keys (With Confetti)
+        // ----------------- SMART ANTI-SPAM SUBMIT LOGIC -----------------
         function submitKeysToFirebase() {
             const area = document.getElementById('keyInputArea');
-            const lines = area.value.split('\n').map(l => l.trim()).filter(l => l.startsWith('NG-') || l.includes('nusuk'));
-            if(lines.length === 0) { showToast('❌ Enter valid keys starting with NG-'); return; }
+            let rawLines = area.value.split('\n').map(l => l.trim()).filter(l => l.startsWith('NG-') || l.includes('nusuk'));
             
-            lines.forEach(keyText => {
+            if(rawLines.length === 0) { showToast('❌ Enter valid keys starting with NG-'); return; }
+            
+            // 1. Remove duplicate lines from the user's input box
+            let uniqueInputKeys = [...new Set(rawLines)];
+
+            // 2. Filter out keys that are already active on the board
+            let finalNewKeys = uniqueInputKeys.filter(keyText => !window.activeKeysSet.has(keyText));
+
+            if(finalNewKeys.length === 0) {
+                showToast('⚠️ All these keys are already on the board!');
+                return;
+            }
+            
+            // Submit only fresh keys
+            finalNewKeys.forEach(keyText => {
                 db.ref('keys').push({
                     text: keyText, timestamp: firebase.database.ServerValue.TIMESTAMP, upvotes: 0, downvotes: 0
                 });
@@ -485,7 +502,7 @@
             // Trigger Confetti Celebration!
             confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#10b981', '#f97316', '#ffffff'] });
             
-            showToast(`🎉 ${lines.length} Key(s) Shared! Jazakallah Khair!`);
+            showToast(`🎉 ${finalNewKeys.length} New Key(s) Shared! Jazakallah Khair!`);
             setTimeout(() => { switchTab('keys'); }, 2000); 
         }
 
